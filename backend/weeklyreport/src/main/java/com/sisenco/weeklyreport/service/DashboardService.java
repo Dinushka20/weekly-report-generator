@@ -47,6 +47,26 @@ public class DashboardService {
         dashboard.setDraftReports(
                 reportRepository.countByStatus(ReportStatus.DRAFT));
 
+        // Compute open blockers count (reports with blockers populated, not drafts)
+        long blockers = reportRepository.findAll().stream()
+                .filter(r -> r.getBlockers() != null && !r.getBlockers().trim().isEmpty() && r.getStatus() != ReportStatus.DRAFT)
+                .count();
+        dashboard.setOpenBlockersCount(blockers);
+
+        // Compute compliance rate (active members with reports submitted/updated in the last 7 days vs total members)
+        long totalMembers = userRepository.findAll().stream()
+                .filter(u -> u.getRole() == com.sisenco.weeklyreport.enums.Role.MEMBER)
+                .count();
+        java.time.LocalDate oneWeekAgo = java.time.LocalDate.now().minusDays(7);
+        long activeSubmissions = reportRepository.findAll().stream()
+                .filter(r -> r.getStatus() != ReportStatus.DRAFT && r.getWeekEnd() != null && !r.getWeekEnd().isBefore(oneWeekAgo))
+                .map(com.sisenco.weeklyreport.entity.WeeklyReport::getUser)
+                .filter(u -> u != null && u.getRole() == com.sisenco.weeklyreport.enums.Role.MEMBER)
+                .distinct()
+                .count();
+        double compliance = totalMembers > 0 ? ((double) activeSubmissions / totalMembers) * 100 : 0.0;
+        dashboard.setSubmissionComplianceRate(Math.round(compliance * 10.0) / 10.0);
+
         return dashboard;
 
     }

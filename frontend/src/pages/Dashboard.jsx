@@ -11,11 +11,16 @@ export default function Dashboard() {
     const [reports, setReports] = useState([]);
     const [filterProject, setFilterProject] = useState("");
     const [projects, setProjects] = useState([]);
+    const [users, setUsers] = useState([]);
+    const [filterUser, setFilterUser] = useState("");
+    const [filterStart, setFilterStart] = useState("");
+    const [filterEnd, setFilterEnd] = useState("");
 
     useEffect(() => {
         api.get("/dashboard").then(res => setDashboard(res.data));
         api.get("/reports").then(res => setReports(res.data));
         api.get("/projects").then(res => setProjects(res.data));
+        api.get("/users").then(res => setUsers(res.data.filter(u => u.role === "MEMBER")));
     }, []);
 
     const pieData = [
@@ -37,6 +42,10 @@ export default function Dashboard() {
     const filteredReports = reports.filter(r => {
         if (filterProject && r.project && r.project.id !== Number(filterProject)) return false;
         if (filterProject && !r.project) return false;
+        if (filterUser && r.user && r.user.id !== Number(filterUser)) return false;
+        if (filterUser && !r.user) return false;
+        if (filterStart && r.weekStart && r.weekStart < filterStart) return false;
+        if (filterEnd && r.weekEnd && r.weekEnd > filterEnd) return false;
         return true;
     });
 
@@ -114,26 +123,46 @@ export default function Dashboard() {
 
                 {/* Quick Stats */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                    <div className="ui-card" style={{ flex: 1, padding: "24px" }}>
-                        <h3 className="ui-card-title" style={{ fontSize: 16, marginBottom: 20 }}>System Stats</h3>
+                    <div className="ui-card" style={{ flex: 1, padding: "20px" }}>
+                        <h3 className="ui-card-title" style={{ fontSize: 15, marginBottom: 16 }}>System Stats</h3>
                         
-                        <div style={{ background: "var(--bg-input)", padding: "16px 20px", borderRadius: 16, marginBottom: 12, display: "flex", alignItems: "center", gap: 16 }}>
-                            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--secondary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                <FiActivity size={16} />
+                        <div style={{ background: "var(--bg-input)", padding: "12px 16px", borderRadius: 12, marginBottom: 8, display: "flex", alignItems: "center", gap: 12 }}>
+                            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--secondary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                <FiActivity size={14} />
                             </div>
                             <div>
-                                <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>Total Projects</div>
-                                <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-dark)" }}>{dashboard.totalProjects || 0}</div>
+                                <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>Total Projects</div>
+                                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-dark)" }}>{dashboard.totalProjects || 0}</div>
                             </div>
                         </div>
 
-                        <div style={{ background: "var(--bg-input)", padding: "16px 20px", borderRadius: 16, display: "flex", alignItems: "center", gap: 16 }}>
-                            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--text-dark)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                <FiActivity size={16} />
+                        <div style={{ background: "var(--bg-input)", padding: "12px 16px", borderRadius: 12, marginBottom: 8, display: "flex", alignItems: "center", gap: 12 }}>
+                            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--text-dark)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                <FiActivity size={14} />
                             </div>
                             <div>
-                                <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>Active Users</div>
-                                <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-dark)" }}>{dashboard.totalUsers || 0}</div>
+                                <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>Active Users</div>
+                                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-dark)" }}>{dashboard.totalUsers || 0}</div>
+                            </div>
+                        </div>
+
+                        <div style={{ background: "var(--bg-input)", padding: "12px 16px", borderRadius: 12, marginBottom: 8, display: "flex", alignItems: "center", gap: 12 }}>
+                            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#ff7b93", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                <FiActivity size={14} />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>Open Blockers</div>
+                                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-dark)" }}>{dashboard.openBlockersCount || 0}</div>
+                            </div>
+                        </div>
+
+                        <div style={{ background: "var(--bg-input)", padding: "12px 16px", borderRadius: 12, display: "flex", alignItems: "center", gap: 12 }}>
+                            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#ffd32a", color: "var(--text-dark)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                <FiActivity size={14} />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>Compliance Rate</div>
+                                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-dark)" }}>{dashboard.submissionComplianceRate || 0}%</div>
                             </div>
                         </div>
                     </div>
@@ -217,13 +246,14 @@ export default function Dashboard() {
 
             {/* Bottom area */}
             <div className="ui-card">
-                <div className="ui-card-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: 0 }}>
+                <div className="ui-card-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "0 0 20px 0", flexWrap: "wrap", gap: 16 }}>
                     <span>Recent Reports</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                        <div className="search-bar" style={{ background: "transparent", border: "1px solid var(--border)", width: "auto", padding: "6px 16px", height: 36 }}>
-                            <FiFilter color="var(--text-muted)" size={14} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                        {/* Project Filter */}
+                        <div className="search-bar" style={{ background: "transparent", border: "1px solid var(--border)", width: "auto", padding: "6px 12px", height: 36 }}>
+                            <FiFilter color="var(--text-muted)" size={12} />
                             <select 
-                                style={{ border: "none", outline: "none", fontSize: 12, color: "var(--text-dark)", background: "transparent", fontWeight: 600 }}
+                                style={{ border: "none", outline: "none", fontSize: 11, color: "var(--text-dark)", background: "transparent", fontWeight: 600 }}
                                 value={filterProject}
                                 onChange={e => setFilterProject(e.target.value)}
                             >
@@ -231,7 +261,44 @@ export default function Dashboard() {
                                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
                         </div>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--secondary)", cursor: "pointer" }}>See all</span>
+                        {/* Team Member Filter */}
+                        <div className="search-bar" style={{ background: "transparent", border: "1px solid var(--border)", width: "auto", padding: "6px 12px", height: 36 }}>
+                            <FiFilter color="var(--text-muted)" size={12} />
+                            <select 
+                                style={{ border: "none", outline: "none", fontSize: 11, color: "var(--text-dark)", background: "transparent", fontWeight: 600 }}
+                                value={filterUser}
+                                onChange={e => setFilterUser(e.target.value)}
+                            >
+                                <option value="">All Members</option>
+                                {users.map(u => <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>)}
+                            </select>
+                        </div>
+                        {/* Date Start Filter */}
+                        <div className="search-bar" style={{ background: "transparent", border: "1px solid var(--border)", width: "auto", padding: "6px 12px", height: 36 }}>
+                            <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, marginRight: 4 }}>From:</span>
+                            <input 
+                                type="date"
+                                style={{ border: "none", outline: "none", fontSize: 11, color: "var(--text-dark)", background: "transparent", fontWeight: 600, padding: 0 }}
+                                value={filterStart}
+                                onChange={e => setFilterStart(e.target.value)}
+                            />
+                        </div>
+                        {/* Date End Filter */}
+                        <div className="search-bar" style={{ background: "transparent", border: "1px solid var(--border)", width: "auto", padding: "6px 12px", height: 36 }}>
+                            <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, marginRight: 4 }}>To:</span>
+                            <input 
+                                type="date"
+                                style={{ border: "none", outline: "none", fontSize: 11, color: "var(--text-dark)", background: "transparent", fontWeight: 600, padding: 0 }}
+                                value={filterEnd}
+                                onChange={e => setFilterEnd(e.target.value)}
+                            />
+                        </div>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--secondary)", cursor: "pointer", marginLeft: 4 }} onClick={() => {
+                            setFilterProject("");
+                            setFilterUser("");
+                            setFilterStart("");
+                            setFilterEnd("");
+                        }}>Reset</span>
                     </div>
                 </div>
 

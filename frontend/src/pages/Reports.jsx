@@ -183,12 +183,25 @@ export default function Reports() {
                                         </td>
                                         <td>{r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : "—"}</td>
                                         <td style={{ textAlign: "right" }}>
-                                            <button className="btn-modern btn-light" style={{ padding: "8px", marginRight: 8 }} onClick={() => editReport(r)}>
-                                                <FiEdit2 size={14} />
-                                            </button>
-                                            <button className="btn-modern btn-light" style={{ padding: "8px", color: "var(--secondary)" }} onClick={() => deleteReport(r.id)}>
-                                                <FiTrash2 size={14} />
-                                            </button>
+                                            {r.status === "DRAFT" || r.status === "REJECTED" ? (
+                                                <>
+                                                    <button className="btn-modern btn-light" style={{ padding: "8px", marginRight: 8 }} onClick={() => editReport(r)}>
+                                                        <FiEdit2 size={14} />
+                                                    </button>
+                                                    <button className="btn-modern btn-light" style={{ padding: "8px", color: "var(--secondary)" }} onClick={() => deleteReport(r.id)}>
+                                                        <FiTrash2 size={14} />
+                                                    </button>
+                                                </>
+                                            ) : r.status === "SUBMITTED" ? (
+                                                <>
+                                                    <button className="btn-modern btn-light" style={{ padding: "8px", marginRight: 8 }} onClick={() => editReport(r)}>
+                                                        <FiEdit2 size={14} />
+                                                    </button>
+                                                    <span style={{ fontSize: 11, color: "var(--text-muted)", paddingRight: 8, fontStyle: "italic" }}>Pending Approval</span>
+                                                </>
+                                            ) : (
+                                                <span style={{ fontSize: 11, color: "var(--primary)", fontWeight: 700, paddingRight: 8 }}>Approved (Finalized)</span>
+                                            )}
                                         </td>
                                     </tr>
                                 ))

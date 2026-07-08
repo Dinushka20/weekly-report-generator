@@ -21,4 +21,8 @@ public class DashboardResponse {
 
     private long draftReports;
 
+    private double submissionComplianceRate;
+
+    private long openBlockersCount;
+
 }
