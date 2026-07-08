@@ -1,0 +1,35 @@
+# IDE and System Files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Frontend (Node / React / Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Backend (Java / Maven)
+backend/weeklyreport/target/
+backend/weeklyreport/*.class
+backend/weeklyreport/*.jar
+backend/weeklyreport/*.war
+backend/weeklyreport/*.ear
+backend/weeklyreport/.mvn/wrapper/maven-wrapper.jar
+
+# Log files
+*.log
