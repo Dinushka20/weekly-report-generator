@@ -172,7 +172,7 @@ export default function Reports() {
                                     </td>
                                 </tr>
                             ) : (
-                                reports.map(r => (
+                                reports.sort((a, b) => b.id - a.id).map(r => (
                                     <tr key={r.id}>
                                         <td>{r.weekStart} — {r.weekEnd}</td>
                                         <td>{r.project ? r.project.name : "—"}</td>

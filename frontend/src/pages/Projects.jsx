@@ -110,7 +110,7 @@ export default function Projects() {
                         {projects.length === 0 ? (
                             <tr><td colSpan="4" style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>No projects.</td></tr>
                         ) : (
-                            projects.map(p => (
+                            projects.sort((a, b) => b.id - a.id).map(p => (
                                 <tr key={p.id}>
                                     <td>{p.name}</td>
                                     <td style={{ color: "var(--text-muted)" }}>{p.description || "—"}</td>

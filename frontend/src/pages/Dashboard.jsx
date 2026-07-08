@@ -314,7 +314,7 @@ export default function Dashboard() {
                 <div style={{ overflowX: "auto", marginTop: 20 }}>
                     <table className="table-ui">
                         <tbody>
-                            {filteredReports.slice(0, 5).map(r => (
+                            {filteredReports.sort((a, b) => b.id - a.id).slice(0, 5).map(r => (
                                 <tr key={r.id}>
                                     <td style={{ width: 60 }}>
                                         <div style={{ 
