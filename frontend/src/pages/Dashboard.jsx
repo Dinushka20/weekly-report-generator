@@ -39,6 +39,15 @@ export default function Dashboard() {
     });
     const barData = Object.entries(userReportCounts).map(([name, count]) => ({ name, count }));
 
+    const projectCounts = {};
+    reports.forEach(r => {
+        if (r.project) {
+            const name = r.project.name;
+            projectCounts[name] = (projectCounts[name] || 0) + 1;
+        }
+    });
+    const projectData = Object.entries(projectCounts).map(([name, count]) => ({ name, count }));
+
     const filteredReports = reports.filter(r => {
         if (filterProject && r.project && r.project.id !== Number(filterProject)) return false;
         if (filterProject && !r.project) return false;
@@ -96,28 +105,28 @@ export default function Dashboard() {
                 {/* Bar Chart 2 */}
                 <div className="ui-card">
                     <div className="ui-card-title" style={{ marginBottom: "8px", display: "flex", justifyContent: "space-between" }}>
-                        <span>Status Overview</span>
+                        <span>Project Workload</span>
                         <span style={{ fontWeight: 800 }}>:</span>
                     </div>
                     <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: "24px" }}>
-                        <span style={{ fontWeight: 800, color: "var(--text-dark)", fontSize: 16 }}>{dashboard.approvedReports || 0}</span> Approved
+                        <span style={{ fontWeight: 800, color: "var(--text-dark)", fontSize: 16 }}>{dashboard.totalProjects || 0}</span> Total Projects
                     </div>
                     <div style={{ height: 160, display: "flex", flexDirection: "column" }}>
-                        {pieData.length > 0 ? (
+                        {projectData.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={pieData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                                <BarChart data={projectData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                                     <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ borderRadius: 12, border: "none", boxShadow: "var(--shadow-card)" }} />
-                                    <Bar dataKey="value" fill="var(--secondary)" radius={[10, 10, 10, 10]} maxBarSize={30} />
+                                    <Bar dataKey="count" fill="var(--secondary)" radius={[10, 10, 10, 10]} maxBarSize={30} />
                                 </BarChart>
                             </ResponsiveContainer>
                         ) : (
                             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: 13, background: "var(--bg-input)", borderRadius: 12 }}>
-                                No data available
+                                No project data
                             </div>
                         )}
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-around", marginTop: 12, color: "#b2bec3", fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>
-                        {pieData.map(d => <span key={d.name}>{d.name.substring(0,3)}</span>)}
+                        {projectData.map(d => <span key={d.name}>{d.name.substring(0,3)}</span>)}
                     </div>
                 </div>
 
