@@ -27,7 +27,19 @@ export default function Reports() {
     }, []);
 
     function loadReports() {
-        api.get("/reports/user/" + user.userId).then(res => setReports(res.data));
+        if (user?.role === "MANAGER") {
+            api.get("/reports").then(res => setReports(res.data));
+        } else {
+            api.get("/reports/user/" + user.userId).then(res => setReports(res.data));
+        }
+    }
+
+    function approveReport(id) {
+        api.put("/reports/" + id + "/approve").then(() => loadReports());
+    }
+
+    function rejectReport(id) {
+        api.put("/reports/" + id + "/reject").then(() => loadReports());
     }
     function loadProjects() {
         api.get("/projects").then(res => setProjects(res.data));
@@ -157,6 +169,7 @@ export default function Reports() {
                     <table className="table-ui">
                         <thead>
                             <tr>
+                                {user?.role === "MANAGER" && <th>Member</th>}
                                 <th>Week</th>
                                 <th>Project</th>
                                 <th>Status</th>
@@ -167,13 +180,16 @@ export default function Reports() {
                         <tbody>
                             {reports.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
+                                    <td colSpan={user?.role === "MANAGER" ? 6 : 5} style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
                                         No reports yet.
                                     </td>
                                 </tr>
                             ) : (
                                 reports.sort((a, b) => b.id - a.id).map(r => (
                                     <tr key={r.id}>
+                                        {user?.role === "MANAGER" && (
+                                            <td style={{ fontWeight: 600 }}>{r.user?.firstName} {r.user?.lastName}</td>
+                                        )}
                                         <td>{r.weekStart} — {r.weekEnd}</td>
                                         <td>{r.project ? r.project.name : "—"}</td>
                                         <td>
@@ -183,24 +199,41 @@ export default function Reports() {
                                         </td>
                                         <td>{r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : "—"}</td>
                                         <td style={{ textAlign: "right" }}>
-                                            {r.status === "DRAFT" || r.status === "REJECTED" ? (
-                                                <>
-                                                    <button className="btn-modern btn-light" style={{ padding: "8px", marginRight: 8 }} onClick={() => editReport(r)}>
-                                                        <FiEdit2 size={14} />
-                                                    </button>
-                                                    <button className="btn-modern btn-light" style={{ padding: "8px", color: "var(--secondary)" }} onClick={() => deleteReport(r.id)}>
-                                                        <FiTrash2 size={14} />
-                                                    </button>
-                                                </>
-                                            ) : r.status === "SUBMITTED" ? (
-                                                <>
-                                                    <button className="btn-modern btn-light" style={{ padding: "8px", marginRight: 8 }} onClick={() => editReport(r)}>
-                                                        <FiEdit2 size={14} />
-                                                    </button>
-                                                    <span style={{ fontSize: 11, color: "var(--text-muted)", paddingRight: 8, fontStyle: "italic" }}>Pending Approval</span>
-                                                </>
+                                            {user?.role === "MANAGER" ? (
+                                                r.status === "SUBMITTED" ? (
+                                                    <>
+                                                        <button className="btn-modern btn-primary" style={{ padding: "6px 12px", marginRight: 8, fontSize: 11 }} onClick={() => approveReport(r.id)}>
+                                                            Approve
+                                                        </button>
+                                                        <button className="btn-modern btn-light" style={{ padding: "6px 12px", fontSize: 11, color: "var(--secondary)" }} onClick={() => rejectReport(r.id)}>
+                                                            Reject
+                                                        </button>
+                                                    </>
+                                                ) : r.status === "APPROVED" ? (
+                                                    <span style={{ fontSize: 11, color: "var(--primary)", fontWeight: 700, paddingRight: 8 }}>Approved</span>
+                                                ) : (
+                                                    <span style={{ fontSize: 11, color: "var(--secondary)", fontWeight: 700, paddingRight: 8 }}>{r.status}</span>
+                                                )
                                             ) : (
-                                                <span style={{ fontSize: 11, color: "var(--primary)", fontWeight: 700, paddingRight: 8 }}>Approved (Finalized)</span>
+                                                r.status === "DRAFT" || r.status === "REJECTED" ? (
+                                                    <>
+                                                        <button className="btn-modern btn-light" style={{ padding: "8px", marginRight: 8 }} onClick={() => editReport(r)}>
+                                                            <FiEdit2 size={14} />
+                                                        </button>
+                                                        <button className="btn-modern btn-light" style={{ padding: "8px", color: "var(--secondary)" }} onClick={() => deleteReport(r.id)}>
+                                                            <FiTrash2 size={14} />
+                                                        </button>
+                                                    </>
+                                                ) : r.status === "SUBMITTED" ? (
+                                                    <>
+                                                        <button className="btn-modern btn-light" style={{ padding: "8px", marginRight: 8 }} onClick={() => editReport(r)}>
+                                                            <FiEdit2 size={14} />
+                                                        </button>
+                                                        <span style={{ fontSize: 11, color: "var(--text-muted)", paddingRight: 8, fontStyle: "italic" }}>Pending Approval</span>
+                                                    </>
+                                                ) : (
+                                                    <span style={{ fontSize: 11, color: "var(--primary)", fontWeight: 700, paddingRight: 8 }}>Approved (Finalized)</span>
+                                                )
                                             )}
                                         </td>
                                     </tr>
