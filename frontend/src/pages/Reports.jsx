@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import MainLayout from "../layouts/MainLayout";
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiSend, FiX } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiSend, FiX, FiEye } from "react-icons/fi";
 
 export default function Reports() {
     const { user } = useAuth();
@@ -10,6 +10,7 @@ export default function Reports() {
     const [projects, setProjects] = useState([]);
     const [editingId, setEditingId] = useState(null);
     const [showForm, setShowForm] = useState(false);
+    const [viewReport, setViewReport] = useState(null);
     const [form, setForm] = useState({
         weekStart: "",
         weekEnd: "",
@@ -163,6 +164,54 @@ export default function Reports() {
                 </div>
             )}
 
+            {viewReport && (
+                <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div className="ui-card" style={{ width: "600px", maxWidth: "90%", maxHeight: "90vh", overflowY: "auto" }}>
+                        <h3 className="ui-card-title" style={{ display: "flex", justifyContent: "space-between" }}>
+                            <span>Report Details - {viewReport.user?.firstName} {viewReport.user?.lastName}</span>
+                            <button style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-muted)" }} onClick={() => setViewReport(null)}>
+                                <FiX size={20} />
+                            </button>
+                        </h3>
+                        <div style={{ marginBottom: 16 }}>
+                            <strong>Project:</strong> {viewReport.project ? viewReport.project.name : "N/A"}
+                        </div>
+                        <div style={{ marginBottom: 16 }}>
+                            <strong>Period:</strong> {viewReport.weekStart} to {viewReport.weekEnd}
+                        </div>
+                        <div style={{ marginBottom: 16 }}>
+                            <strong>Hours Worked:</strong> {viewReport.hoursWorked || 0}
+                        </div>
+                        <div style={{ marginBottom: 16 }}>
+                            <strong>Tasks Completed:</strong>
+                            <p style={{ whiteSpace: "pre-wrap", margin: "4px 0", background: "var(--bg-input)", padding: 8, borderRadius: 8 }}>{viewReport.completedTasks || "None"}</p>
+                        </div>
+                        <div style={{ marginBottom: 16 }}>
+                            <strong>Tasks Planned:</strong>
+                            <p style={{ whiteSpace: "pre-wrap", margin: "4px 0", background: "var(--bg-input)", padding: 8, borderRadius: 8 }}>{viewReport.plannedTasks || "None"}</p>
+                        </div>
+                        <div style={{ marginBottom: 16 }}>
+                            <strong>Blockers:</strong>
+                            <p style={{ whiteSpace: "pre-wrap", margin: "4px 0", background: "var(--bg-input)", padding: 8, borderRadius: 8 }}>{viewReport.blockers || "None"}</p>
+                        </div>
+                        <div style={{ marginBottom: 16 }}>
+                            <strong>Notes:</strong>
+                            <p style={{ whiteSpace: "pre-wrap", margin: "4px 0", background: "var(--bg-input)", padding: 8, borderRadius: 8 }}>{viewReport.notes || "None"}</p>
+                        </div>
+                        {viewReport.status === "SUBMITTED" && (
+                            <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+                                <button className="btn-modern btn-primary" onClick={() => { approveReport(viewReport.id); setViewReport(null); }}>
+                                    Approve
+                                </button>
+                                <button className="btn-modern btn-light" style={{ color: "var(--secondary)" }} onClick={() => { rejectReport(viewReport.id); setViewReport(null); }}>
+                                    Reject
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             <div className="ui-card">
                 <h3 className="ui-card-title">Report History</h3>
                 <div style={{ overflowX: "auto" }}>
@@ -200,20 +249,25 @@ export default function Reports() {
                                         <td>{r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : "—"}</td>
                                         <td style={{ textAlign: "right" }}>
                                             {user?.role === "MANAGER" ? (
-                                                r.status === "SUBMITTED" ? (
-                                                    <>
-                                                        <button className="btn-modern btn-primary" style={{ padding: "6px 12px", marginRight: 8, fontSize: 11 }} onClick={() => approveReport(r.id)}>
-                                                            Approve
-                                                        </button>
-                                                        <button className="btn-modern btn-light" style={{ padding: "6px 12px", fontSize: 11, color: "var(--secondary)" }} onClick={() => rejectReport(r.id)}>
-                                                            Reject
-                                                        </button>
-                                                    </>
-                                                ) : r.status === "APPROVED" ? (
-                                                    <span style={{ fontSize: 11, color: "var(--primary)", fontWeight: 700, paddingRight: 8 }}>Approved</span>
-                                                ) : (
-                                                    <span style={{ fontSize: 11, color: "var(--secondary)", fontWeight: 700, paddingRight: 8 }}>{r.status}</span>
-                                                )
+                                                <>
+                                                    <button className="btn-modern btn-light" style={{ padding: "6px 12px", marginRight: 8, fontSize: 11 }} onClick={() => setViewReport(r)}>
+                                                        <FiEye size={12} style={{ marginRight: 4 }} /> View
+                                                    </button>
+                                                    {r.status === "SUBMITTED" ? (
+                                                        <>
+                                                            <button className="btn-modern btn-primary" style={{ padding: "6px 12px", marginRight: 8, fontSize: 11 }} onClick={() => approveReport(r.id)}>
+                                                                Approve
+                                                            </button>
+                                                            <button className="btn-modern btn-light" style={{ padding: "6px 12px", fontSize: 11, color: "var(--secondary)" }} onClick={() => rejectReport(r.id)}>
+                                                                Reject
+                                                            </button>
+                                                        </>
+                                                    ) : r.status === "APPROVED" ? (
+                                                        <span style={{ fontSize: 11, color: "var(--primary)", fontWeight: 700, paddingRight: 8 }}>Approved</span>
+                                                    ) : (
+                                                        <span style={{ fontSize: 11, color: "var(--secondary)", fontWeight: 700, paddingRight: 8 }}>{r.status}</span>
+                                                    )}
+                                                </>
                                             ) : (
                                                 r.status === "DRAFT" || r.status === "REJECTED" ? (
                                                     <>
